@@ -117,7 +117,7 @@ const MeetReportViewer = () => {
       <h2>Reporte de Reuniones de Meet</h2>
 
       <div className="mb-3">
-        <label className="form-label">Subí el archivo meet56.csv:</label>
+        <label className="form-label">Subí el archivo csv:</label>
         <input
           type="file"
           accept=".csv"
