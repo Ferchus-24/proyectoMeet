@@ -7,7 +7,7 @@ const MeetReportViewer = () => {
 
   // Cargar materias desde /public/materias.csv
   useEffect(() => {
-    fetch("/materias.csv")
+    fetch("/archivo/materias.csv")
       .then((res) => res.text())
       .then((text) => {
         const parsed = Papa.parse(text, {
@@ -117,7 +117,7 @@ const MeetReportViewer = () => {
       <h2>Reporte de Reuniones de Meet</h2>
 
       <div className="mb-3">
-        <label className="form-label">Subí el archivo csv:</label>
+        <label className="form-label">Subir el archivo csv:</label>
         <input
           type="file"
           accept=".csv"
