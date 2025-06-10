@@ -5,7 +5,7 @@ const NavMeet = () => {
   return (
     <nav id="nav-meet" className="navbar navbar-expand-lg">
       <div className="container-fluid">
-        <span className="navbar-brand mb-0 h1 text-color">
+        <span className="navbar-brand mb-0 h1 text-white">
           Gestión de Reuniones Meet
         </span>
       </div>
