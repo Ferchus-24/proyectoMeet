@@ -83,10 +83,7 @@ const MeetReportViewer = () => {
       const horas = Math.floor(durMin / 60);
       const mins = durMin % 60;
       const code = g.codigoReunion;
-      const link = `https://meet.google.com/${code.slice(0, 3)}-${code.slice(
-        3,
-        7
-      )}-${code.slice(7)}`;
+      const link = `${code.slice(0, 3)}-${code.slice(3, 7)}-${code.slice(7)}`;
       const mat = materiasMap[code] || {};
       return {
         idConferencia: id,
@@ -117,14 +114,19 @@ const MeetReportViewer = () => {
     sheet.columns = [
       { header: "Código materia", key: "codigoMateria", width: 15 },
       { header: "Materia", key: "materia", width: 20 },
-      { header: "Reunión", key: "link", width: 30 },
+      { header: "Reunión", key: "linkCompleto", width: 40 },
       { header: "Inicio", key: "inicio", width: 25 },
       { header: "Fin", key: "fin", width: 25 },
       { header: "Duración", key: "duracion", width: 15 },
       { header: "Participantes", key: "participantes", width: 15 },
     ];
     // Usar reuniones en lugar de una variable no definida
-    reuniones.forEach((row) => sheet.addRow(row));
+    reuniones.forEach((row) => {
+      sheet.addRow({
+        ...row,
+        linkCompleto: `https://meet.google.com/${row.link}`,
+      });
+    });
     const buf = await workbook.xlsx.writeBuffer();
     saveAs(
       new Blob([buf], { type: "application/octet-stream" }),
@@ -172,11 +174,7 @@ const MeetReportViewer = () => {
                 <tr key={i}>
                   <td>{r.codigoMateria}</td>
                   <td>{r.materia}</td>
-                  <td>
-                    <a href={r.link} target="_blank" rel="noreferrer">
-                      Abrir
-                    </a>
-                  </td>
+                  <td>{r.link}</td>
                   <td>{r.inicio}</td>
                   <td>{r.fin}</td>
                   <td>{r.duracion}</td>
