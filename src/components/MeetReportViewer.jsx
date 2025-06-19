@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 
 const MeetReportViewer = () => {
   const [reuniones, setReuniones] = useState([]);
@@ -15,7 +17,6 @@ const MeetReportViewer = () => {
           skipEmptyLines: true,
         }).data;
         const map = {};
-
         parsed.forEach((row) => {
           const url = row["Código de reunión"];
           const code = url
@@ -27,11 +28,9 @@ const MeetReportViewer = () => {
             map[code] = {
               codigoMateria: row["Código de materia"],
               materia: row["Materia"],
-              // No se guarda el profesor porque no se usa
             };
           }
         });
-
         setMateriasMap(map);
       });
   }, []);
@@ -43,118 +42,150 @@ const MeetReportViewer = () => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: ({ data }) => procesarDatos(data),
+      complete: ({ data }) => processDatos(data),
     });
   };
 
-  const procesarDatos = (data) => {
+  const processDatos = (data) => {
     const grupos = {};
-
     data.forEach((row) => {
       const idConferencia = row["ID de conferencia"];
-      const codigoReunion = row["Código de reunión"]
+      const codigoRaw = row["Código de reunión"]
         ?.replace(/[^a-z0-9]/gi, "")
         .toLowerCase();
       const inicioStr = row["Hora de inicio"];
-      const duracion = parseInt(row["Duración (segundos)"], 10) || 0;
-      const actor = row["Nombre del actor"];
+      const durSec = parseInt(row["Duración (segundos)"], 10) || 0;
+      if (!idConferencia || !codigoRaw || !materiasMap[codigoRaw] || !inicioStr)
+        return;
 
-      if (!codigoReunion || !materiasMap[codigoReunion]) return;
-      if (!inicioStr || !idConferencia) return;
-
-      const horaInicio = new Date(inicioStr);
-      const horaFin = new Date(horaInicio.getTime() + duracion * 1000);
+      const inicio = new Date(inicioStr);
+      const fin = new Date(inicio.getTime() + durSec * 1000);
 
       if (!grupos[idConferencia]) {
         grupos[idConferencia] = {
-          idConferencia,
-          codigoReunion,
-          horaMin: horaInicio,
-          horaMax: horaFin,
+          codigoReunion: codigoRaw,
+          inicioMin: inicio,
+          finMax: fin,
           participantes: new Set(),
         };
       } else {
-        if (horaInicio < grupos[idConferencia].horaMin)
-          grupos[idConferencia].horaMin = horaInicio;
-        if (horaFin > grupos[idConferencia].horaMax)
-          grupos[idConferencia].horaMax = horaFin;
+        if (inicio < grupos[idConferencia].inicioMin)
+          grupos[idConferencia].inicioMin = inicio;
+        if (fin > grupos[idConferencia].finMax)
+          grupos[idConferencia].finMax = fin;
       }
-
-      if (actor) grupos[idConferencia].participantes.add(actor);
+      grupos[idConferencia].participantes.add(row["Nombre del actor"]);
     });
 
-    const resultado = Object.values(grupos).map((g) => {
-      const duracionMs = g.horaMax - g.horaMin;
-      const duracionMin = Math.floor(duracionMs / 1000 / 60);
-      const horas = Math.floor(duracionMin / 60);
-      const minutos = duracionMin % 60;
-
-      const link = g.codigoReunion
-        ? `https://meet.google.com/${g.codigoReunion.slice(
-            0,
-            3
-          )}-${g.codigoReunion.slice(3, 7)}-${g.codigoReunion.slice(7, 10)}`
-        : "—";
-
-      const materia = materiasMap[g.codigoReunion] || {};
-
+    const resultado = Object.entries(grupos).map(([id, g]) => {
+      const durMs = g.finMax - g.inicioMin;
+      const durMin = Math.round(durMs / 60000);
+      const horas = Math.floor(durMin / 60);
+      const mins = durMin % 60;
+      const code = g.codigoReunion;
+      const link = `https://meet.google.com/${code.slice(0, 3)}-${code.slice(
+        3,
+        7
+      )}-${code.slice(7)}`;
+      const mat = materiasMap[code] || {};
       return {
-        ...g,
-        duracionFormateada: `${horas}h ${minutos}m`,
+        idConferencia: id,
+        codigoMateria: mat.codigoMateria,
+        materia: mat.materia,
         link,
-        cantidadParticipantes: g.participantes.size,
-        inicio: g.horaMin.toLocaleString(),
-        fin: g.horaMax.toLocaleString(),
-        ...materia,
+        inicio: g.inicioMin.toLocaleString("es-AR"),
+        fin: g.finMax.toLocaleString("es-AR"),
+        duracion: `${horas}h ${mins}m`,
+        participantes: g.participantes.size,
       };
     });
 
-    setReuniones(resultado);
+    // Ordenar por código de materia, luego por fecha de inicio
+    const ordenado = resultado.sort((a, b) => {
+      if (a.codigoMateria < b.codigoMateria) return -1;
+      if (a.codigoMateria > b.codigoMateria) return 1;
+      const dateA = new Date(a.inicio);
+      const dateB = new Date(b.inicio);
+      return dateA - dateB;
+    });
+    setReuniones(ordenado);
+  };
+
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Meet Report");
+    sheet.columns = [
+      { header: "Código materia", key: "codigoMateria", width: 15 },
+      { header: "Materia", key: "materia", width: 20 },
+      { header: "Reunión", key: "link", width: 30 },
+      { header: "Inicio", key: "inicio", width: 25 },
+      { header: "Fin", key: "fin", width: 25 },
+      { header: "Duración", key: "duracion", width: 15 },
+      { header: "Participantes", key: "participantes", width: 15 },
+    ];
+    // Usar reuniones en lugar de una variable no definida
+    reuniones.forEach((row) => sheet.addRow(row));
+    const buf = await workbook.xlsx.writeBuffer();
+    saveAs(
+      new Blob([buf], { type: "application/octet-stream" }),
+      "meet_report.xlsx"
+    );
   };
 
   return (
     <div className="container mt-4">
       <h2>Reporte de Reuniones de Meet</h2>
 
-      <div className="mb-3">
-        <label className="form-label">Subir el archivo csv:</label>
-        <input
-          type="file"
-          accept=".csv"
-          className="form-control"
-          onChange={handleCSVUpload}
-        />
+      <div className="row mb-3 mt-3">
+        <div className="col-md-6">
+          <input
+            type="file"
+            accept=".csv"
+            className="form-control"
+            onChange={handleCSVUpload}
+          />
+        </div>
       </div>
 
       {reuniones.length > 0 && (
-        <table className="table table-bordered">
-          <thead className="table-light">
-            <tr>
-              <th>Reunión</th>
-              <th>Inicio</th>
-              <th>Fin</th>
-              <th>Duración</th>
-              <th>Participantes</th>
-              <th>Materia</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reuniones.map((r, i) => (
-              <tr key={i}>
-                <td>
-                  <a href={r.link} target="_blank" rel="noreferrer">
-                    {r.link}
-                  </a>
-                </td>
-                <td>{r.inicio}</td>
-                <td>{r.fin}</td>
-                <td>{r.duracionFormateada}</td>
-                <td>{r.cantidadParticipantes}</td>
-                <td>{r.materia || "-"}</td>
+        <>
+          <div className="mb-3">
+            <button className="btn btn-success" onClick={exportToExcel}>
+              Exportar a Excel
+            </button>
+          </div>
+
+          <table className="table table-bordered">
+            <thead className="table-light">
+              <tr>
+                <th>Código materia</th>
+                <th>Materia</th>
+                <th>Reunión</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Duración</th>
+                <th>Participantes</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {reuniones.map((r, i) => (
+                <tr key={i}>
+                  <td>{r.codigoMateria}</td>
+                  <td>{r.materia}</td>
+                  <td>
+                    <a href={r.link} target="_blank" rel="noreferrer">
+                      Abrir
+                    </a>
+                  </td>
+                  <td>{r.inicio}</td>
+                  <td>{r.fin}</td>
+                  <td>{r.duracion}</td>
+                  <td>{r.participantes}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
     </div>
   );
