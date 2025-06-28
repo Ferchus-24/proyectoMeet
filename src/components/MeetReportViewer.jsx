@@ -789,7 +789,7 @@ const MeetReportViewer = () => {
       { header: "Reunión", key: "linkCompleto", width: 40 },
       { header: "Inicio", key: "inicio", width: 30 },
       { header: "Fin", key: "fin", width: 30 },
-      { header: "Horario esperado", key: "horarioEsperado", width: 25 },
+      { header: "Horario informado", key: "horarioEsperado", width: 25 },
       { header: "¿Asistió en horario?", key: "asistencia", width: 20 },
       { header: "Duración", key: "duracion", width: 15 },
       { header: "Participantes", key: "participantes", width: 15 },
