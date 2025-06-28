@@ -2,6 +2,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
 
 #nav-meet {
@@ -12,4 +17,13 @@
 
 .text-color {
   color: aliceblue;
+}
+
+#botones {
+  background-color: rgb(126, 0, 0);
+  color: aliceblue;
+  margin-right: 2px;
+  &:hover {
+    background-color: rgba(92, 18, 18, 0.872);
+  }
 }
