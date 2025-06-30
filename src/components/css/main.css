@@ -27,3 +27,9 @@
     background-color: rgba(92, 18, 18, 0.872);
   }
 }
+
+@media (width < 768px) {
+  #botones {
+    margin-top: 10px;
+  }
+}
