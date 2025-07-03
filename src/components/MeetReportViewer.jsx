@@ -256,7 +256,7 @@ const MeetReportViewer = () => {
 
   return (
     <div className="container mt-4">
-      <h3>Asistencia Docente</h3>
+      <h3>Asistencia docentes</h3>
       <input
         type="file"
         accept=".csv"
