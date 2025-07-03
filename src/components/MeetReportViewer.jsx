@@ -44,9 +44,15 @@ const MeetReportViewer = () => {
   const [filtroMateria, setFiltroMateria] = useState("Todas");
 
   useEffect(() => {
-    fetch("http://179.0.136.79:4000/hconsulta/horariosfer")
+    const url =
+      window.location.protocol === "https:"
+        ? "/mock/horarios.json" // si está en producción (https)
+        : "http://179.0.136.79:4000/hconsulta/horariosfer"; // si está en localhost
+
+    fetch(url)
       .then((res) => res.json())
-      .then((data) => setHorarios(data));
+      .then((data) => setHorarios(data))
+      .catch((err) => console.error("Error al cargar horarios:", err));
   }, []);
 
   useEffect(() => {
