@@ -260,7 +260,7 @@ const MeetReportViewer = () => {
   ).sort();
 
   return (
-    <div className="container mt-4">
+    <div className="container-fluid mt-4 text-start">
       <h3>Asistencia docentes</h3>
       <input
         type="file"
