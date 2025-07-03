@@ -23,6 +23,11 @@ const parseHorario = (str) => {
   return { inicio: h1 * 60 + m1, fin: h2 * 60 + m2 };
 };
 
+const parseHorariosMultiples = (horarioStr) => {
+  if (!horarioStr || typeof horarioStr !== "string") return [];
+  return horarioStr.split(" y ").map(parseHorario).filter(Boolean);
+};
+
 const formatearFechaHora = (fecha) => {
   const f = new Date(fecha);
   const dia = dias[f.getDay()];
@@ -46,9 +51,8 @@ const MeetReportViewer = () => {
   useEffect(() => {
     const url =
       window.location.protocol === "https:"
-        ? "/mock/horarios.json" // si está en producción (https)
-        : "http://179.0.136.79:4000/hconsulta/horariosfer"; // si está en localhost
-
+        ? "/mock/horarios.json"
+        : "http://179.0.136.79:4000/hconsulta/horariosfer";
     fetch(url)
       .then((res) => res.json())
       .then((data) => setHorarios(data))
@@ -129,93 +133,88 @@ const MeetReportViewer = () => {
       for (const doc of docentes) {
         for (const dia of dias.slice(1, 7)) {
           const horario = doc[dia];
-          const esperado = parseHorario(horario);
-          if (!esperado) continue;
+          const bloques = parseHorariosMultiples(horario);
+          if (!bloques.length) continue;
 
           const diaDocente = dias.indexOf(dia);
           if (diaDocente === fecha.getDay()) {
-            if (horaMin >= esperado.inicio && horaMin <= esperado.fin) {
-              coincidencia = {
-                idConferencia: idConf,
-                codigoMateria: doc.id_mat,
-                materia: doc.materia,
-                carrera: doc.carrera,
-                legajo: doc.legajo,
-                apellido: doc.apellido,
-                link: linkFormateado,
-                inicio: formatearFechaHora(g.inicioMin),
-                fin: formatearFechaHora(g.finMax),
-                horarioEsperado: `${
-                  dia.charAt(0).toUpperCase() + dia.slice(1)
-                } ${horario}`,
-                asistencia: "Sí",
-                motivo: "",
-                duracion: `${Math.floor(
-                  (g.finMax - g.inicioMin) / 3600000
-                )}h ${Math.round(
-                  ((g.finMax - g.inicioMin) % 3600000) / 60000
-                )}m`,
-                participantes: g.participantes.size,
-              };
-              break;
-            }
-
-            // Segunda comprobación: ingreso hasta 30 minutos antes
-            if (horaMin >= esperado.inicio - 30 && horaMin < esperado.inicio) {
-              coincidencia = {
-                idConferencia: idConf,
-                codigoMateria: doc.id_mat,
-                materia: doc.materia,
-                carrera: doc.carrera,
-                legajo: doc.legajo,
-                apellido: doc.apellido,
-                link: linkFormateado,
-                inicio: formatearFechaHora(g.inicioMin),
-                fin: formatearFechaHora(g.finMax),
-                horarioEsperado: `${
-                  dia.charAt(0).toUpperCase() + dia.slice(1)
-                } ${horario}`,
-                asistencia: "Sí",
-                motivo: "Segunda comprobación: ingresó antes",
-                duracion: `${Math.floor(
-                  (g.finMax - g.inicioMin) / 3600000
-                )}h ${Math.round(
-                  ((g.finMax - g.inicioMin) % 3600000) / 60000
-                )}m`,
-                participantes: g.participantes.size,
-              };
-              break;
+            for (const bloque of bloques) {
+              if (horaMin >= bloque.inicio && horaMin <= bloque.fin) {
+                coincidencia = {
+                  ...crearCoincidencia(
+                    doc,
+                    g,
+                    dia,
+                    horario,
+                    linkFormateado,
+                    "Sí",
+                    ""
+                  ),
+                };
+                break;
+              }
+              if (horaMin >= bloque.inicio - 30 && horaMin < bloque.inicio) {
+                coincidencia = {
+                  ...crearCoincidencia(
+                    doc,
+                    g,
+                    dia,
+                    horario,
+                    linkFormateado,
+                    "Sí",
+                    "Segunda comprobación: ingresó antes"
+                  ),
+                };
+                break;
+              }
             }
           }
+          if (coincidencia) break;
         }
         if (coincidencia) break;
       }
 
       if (!coincidencia) {
-        resultados.push({
-          idConferencia: idConf,
-          codigoMateria: "-",
-          materia: "-",
-          carrera: "-",
-          legajo: "-",
-          apellido: "-",
-          link: linkFormateado,
-          inicio: formatearFechaHora(g.inicioMin),
-          fin: formatearFechaHora(g.finMax),
-          horarioEsperado: "-",
-          asistencia: "No",
-          motivo,
-          duracion: `${Math.floor(
-            (g.finMax - g.inicioMin) / 3600000
-          )}h ${Math.round(((g.finMax - g.inicioMin) % 3600000) / 60000)}m`,
-          participantes: g.participantes.size,
-        });
+        resultados.push(
+          crearCoincidencia(null, g, "-", "-", linkFormateado, "No", motivo)
+        );
       } else {
         resultados.push(coincidencia);
       }
     });
 
     setReuniones(resultados);
+  };
+
+  const crearCoincidencia = (
+    doc,
+    g,
+    dia,
+    horario,
+    link,
+    asistencia,
+    motivo
+  ) => {
+    return {
+      idConferencia: g.idConferencia || "-",
+      codigoMateria: doc?.id_mat || "-",
+      materia: doc?.materia || "-",
+      carrera: doc?.carrera || "-",
+      legajo: doc?.legajo || "-",
+      apellido: doc?.apellido || "-",
+      link,
+      inicio: formatearFechaHora(g.inicioMin),
+      fin: formatearFechaHora(g.finMax),
+      horarioEsperado: doc
+        ? `${dia.charAt(0).toUpperCase() + dia.slice(1)} ${horario}`
+        : "-",
+      asistencia,
+      motivo,
+      duracion: `${Math.floor(
+        (g.finMax - g.inicioMin) / 3600000
+      )}h ${Math.round(((g.finMax - g.inicioMin) % 3600000) / 60000)}m`,
+      participantes: g.participantes.size,
+    };
   };
 
   const exportarExcel = () => {
@@ -266,10 +265,9 @@ const MeetReportViewer = () => {
       <input
         type="file"
         accept=".csv"
-        className="form-control mb-3"
+        className="form-control w-50 mb-3"
         onChange={handleCSVUpload}
       />
-
       {reuniones.length > 0 && (
         <>
           <div className="row mb-3">
@@ -304,11 +302,7 @@ const MeetReportViewer = () => {
               </select>
             </div>
             <div className="col-md-4 d-flex align-items-end">
-              <button
-                id="botones"
-                className="btn b w-50"
-                onClick={exportarExcel}
-              >
+              <button id="botones" className="btn w-50" onClick={exportarExcel}>
                 Exportar a Excel
               </button>
             </div>
