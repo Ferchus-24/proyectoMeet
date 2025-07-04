@@ -162,7 +162,7 @@ const MeetReportViewer = () => {
                     horario,
                     linkFormateado,
                     "Sí",
-                    "Segunda comprobación: ingresó antes"
+                    "Ingresó antes"
                   ),
                 };
                 break;
