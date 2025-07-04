@@ -260,17 +260,25 @@ const MeetReportViewer = () => {
   ).sort();
 
   return (
-    <div className="container-fluid mt-4 text-start">
-      <h3>Asistencia docentes</h3>
-      <input
-        type="file"
-        accept=".csv"
-        className="form-control w-50 mb-3"
-        onChange={handleCSVUpload}
-      />
+    <div className="container-fluid mt-4">
+      <div className="row mb-3">
+        <div className="col-md-12">
+          <h3>Asistencia docentes</h3>
+        </div>
+        <div className="col-md-6">
+          <label className="form-label fw-bold">Cargar archivo CSV</label>
+          <input
+            type="file"
+            accept=".csv"
+            className="form-control"
+            onChange={handleCSVUpload}
+          />
+        </div>
+      </div>
+
       {reuniones.length > 0 && (
         <>
-          <div className="row mb-3">
+          <div className="row mb-4">
             <div className="col-md-4">
               <label className="form-label fw-bold">Filtrar por carrera</label>
               <select
@@ -302,63 +310,167 @@ const MeetReportViewer = () => {
               </select>
             </div>
             <div className="col-md-4 d-flex align-items-end">
-              <button id="botones" className="btn w-50" onClick={exportarExcel}>
+              <button id="botones" className="btn" onClick={exportarExcel}>
                 Exportar a Excel
               </button>
             </div>
           </div>
 
-          <table className="table table-bordered">
-            <thead className="table-light text-center">
-              <tr>
-                <th>Código Materia</th>
-                <th>Materia</th>
-                <th>Carrera</th>
-                <th>Legajo</th>
-                <th>Apellido</th>
-                <th>Reunión</th>
-                <th>Inicio</th>
-                <th>Fin</th>
-                <th>Horario informado</th>
-                <th>¿Asistió en horario?</th>
-                <th>Motivo</th>
-                <th>Duración</th>
-                <th>Participantes</th>
-              </tr>
-            </thead>
-            <tbody className="text-center">
-              {reuniones
-                .filter(
-                  (r) =>
-                    filtroCarrera === "Todas" || r.carrera === filtroCarrera
-                )
-                .filter(
-                  (r) =>
-                    filtroMateria === "Todas" || r.materia === filtroMateria
-                )
-                .map((r, i) => (
-                  <tr key={i}>
-                    <td>{r.codigoMateria}</td>
-                    <td>{r.materia}</td>
-                    <td>{r.carrera}</td>
-                    <td>{r.legajo}</td>
-                    <td>{r.apellido}</td>
-                    <td>{r.link}</td>
-                    <td>{r.inicio}</td>
-                    <td>{r.fin}</td>
-                    <td>{r.horarioEsperado}</td>
-                    <td>{r.asistencia}</td>
-                    <td>{r.motivo}</td>
-                    <td>{r.duracion}</td>
-                    <td>{r.participantes}</td>
+          <div className="row">
+            <div className="col-12">
+              <table className="table table-bordered table-hover">
+                <thead className="table-light text-center">
+                  <tr>
+                    <th>Código Materia</th>
+                    <th>Materia</th>
+                    <th>Carrera</th>
+                    <th>Legajo</th>
+                    <th>Apellido</th>
+                    <th>Reunión</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Horario informado</th>
+                    <th>¿Asistió en horario?</th>
+                    <th>Motivo</th>
+                    <th>Duración</th>
+                    <th>Participantes</th>
                   </tr>
-                ))}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="text-center">
+                  {reuniones
+                    .filter(
+                      (r) =>
+                        filtroCarrera === "Todas" || r.carrera === filtroCarrera
+                    )
+                    .filter(
+                      (r) =>
+                        filtroMateria === "Todas" || r.materia === filtroMateria
+                    )
+                    .map((r, i) => (
+                      <tr key={i}>
+                        <td>{r.codigoMateria}</td>
+                        <td>{r.materia}</td>
+                        <td>{r.carrera}</td>
+                        <td>{r.legajo}</td>
+                        <td>{r.apellido}</td>
+                        <td>{r.link}</td>
+                        <td>{r.inicio}</td>
+                        <td>{r.fin}</td>
+                        <td>{r.horarioEsperado}</td>
+                        <td>{r.asistencia}</td>
+                        <td>{r.motivo}</td>
+                        <td>{r.duracion}</td>
+                        <td>{r.participantes}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </>
       )}
     </div>
   );
+
+  //   <div className="container-fluid mt-4">
+  //     <h3>Asistencia docentes</h3>
+  //     <input
+  //       type="file"
+  //       accept=".csv"
+  //       className="form-control mb-3"
+  //       onChange={handleCSVUpload}
+  //     />
+  //     {reuniones.length > 0 && (
+  //       <>
+  //         <div className="row mb-3">
+  //           <div className="col-md-4">
+  //             <label className="form-label fw-bold">Filtrar por carrera</label>
+  //             <select
+  //               className="form-select"
+  //               value={filtroCarrera}
+  //               onChange={(e) => setFiltroCarrera(e.target.value)}
+  //             >
+  //               <option value="Todas">Todas</option>
+  //               {carrerasUnicas.map((c, i) => (
+  //                 <option key={i} value={c}>
+  //                   {c}
+  //                 </option>
+  //               ))}
+  //             </select>
+  //           </div>
+  //           <div className="col-md-4">
+  //             <label className="form-label fw-bold">Filtrar por materia</label>
+  //             <select
+  //               className="form-select"
+  //               value={filtroMateria}
+  //               onChange={(e) => setFiltroMateria(e.target.value)}
+  //             >
+  //               <option value="Todas">Todas</option>
+  //               {materiasUnicas.map((m, i) => (
+  //                 <option key={i} value={m}>
+  //                   {m}
+  //                 </option>
+  //               ))}
+  //             </select>
+  //           </div>
+  //           <div className="col-md-4 d-flex align-items-end">
+  //             <button id="botones" className="btn w-50" onClick={exportarExcel}>
+  //               Exportar a Excel
+  //             </button>
+  //           </div>
+  //         </div>
+
+  //         <table className="table table-bordered">
+  //           <thead className="table-light text-center">
+  //             <tr>
+  //               <th>Código Materia</th>
+  //               <th>Materia</th>
+  //               <th>Carrera</th>
+  //               <th>Legajo</th>
+  //               <th>Apellido</th>
+  //               <th>Reunión</th>
+  //               <th>Inicio</th>
+  //               <th>Fin</th>
+  //               <th>Horario informado</th>
+  //               <th>¿Asistió en horario?</th>
+  //               <th>Motivo</th>
+  //               <th>Duración</th>
+  //               <th>Participantes</th>
+  //             </tr>
+  //           </thead>
+  //           <tbody className="text-center">
+  //             {reuniones
+  //               .filter(
+  //                 (r) =>
+  //                   filtroCarrera === "Todas" || r.carrera === filtroCarrera
+  //               )
+  //               .filter(
+  //                 (r) =>
+  //                   filtroMateria === "Todas" || r.materia === filtroMateria
+  //               )
+  //               .map((r, i) => (
+  //                 <tr key={i}>
+  //                   <td>{r.codigoMateria}</td>
+  //                   <td>{r.materia}</td>
+  //                   <td>{r.carrera}</td>
+  //                   <td>{r.legajo}</td>
+  //                   <td>{r.apellido}</td>
+  //                   <td>{r.link}</td>
+  //                   <td>{r.inicio}</td>
+  //                   <td>{r.fin}</td>
+  //                   <td>{r.horarioEsperado}</td>
+  //                   <td>{r.asistencia}</td>
+  //                   <td>{r.motivo}</td>
+  //                   <td>{r.duracion}</td>
+  //                   <td>{r.participantes}</td>
+  //                 </tr>
+  //               ))}
+  //           </tbody>
+  //         </table>
+  //       </>
+  //     )}
+  //   </div>
+  // );
 };
 
 export default MeetReportViewer;
