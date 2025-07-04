@@ -279,7 +279,7 @@ const MeetReportViewer = () => {
       {reuniones.length > 0 && (
         <>
           <div className="row mb-4">
-            <div className="col-md-4">
+            <div className="col-md-3">
               <label className="form-label fw-bold">Filtrar por carrera</label>
               <select
                 className="form-select"
@@ -294,7 +294,7 @@ const MeetReportViewer = () => {
                 ))}
               </select>
             </div>
-            <div id="filtro2" className="col-md-4">
+            <div id="filtro2" className="col-md-3">
               <label className="form-label fw-bold">Filtrar por materia</label>
               <select
                 className="form-select"
