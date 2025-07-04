@@ -29,6 +29,9 @@
 }
 
 @media (width < 768px) {
+  #filtro2 {
+    margin-top: 10px;
+  }
   #botones {
     margin-top: 10px;
   }

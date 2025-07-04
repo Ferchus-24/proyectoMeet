@@ -294,7 +294,7 @@ const MeetReportViewer = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-4">
+            <div id="filtro2" className="col-md-4">
               <label className="form-label fw-bold">Filtrar por materia</label>
               <select
                 className="form-select"
