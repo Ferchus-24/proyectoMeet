@@ -263,7 +263,7 @@ const MeetReportViewer = () => {
     <div className="container-fluid mt-4">
       <div className="row mb-3">
         <div className="col-md-12">
-          <h3>Asistencia docentes</h3>
+          <h3>Consulta Virtual Docente</h3>
         </div>
         <div className="col-md-6">
           <label className="form-label fw-bold">Cargar archivo CSV</label>
